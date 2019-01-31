@@ -12,26 +12,12 @@ import org.springframework.context.annotation.Bean
 @SpringBootApplication
 class AxonSimpleApplication {
 	@Bean
-    fun repoB(eventStore: EventStore): Repository<AggregateB> {
-        return EventSourcingRepository.builder(AggregateB::class.java).
-                aggregateFactory(GenericAggregateFactory(AggregateB::class.java)).
+    fun repo(eventStore: EventStore): Repository<ParentAggregate> {
+        return EventSourcingRepository.builder(ParentAggregate::class.java).
+                aggregateFactory(MyAggregateFactory()).
                 eventStore(eventStore).
-                build()
+                build<EventSourcingRepository<ParentAggregate>>()
     }
-	@Bean
-    fun repoC(eventStore: EventStore): Repository<AggregateC> {
-        return EventSourcingRepository.builder(AggregateC::class.java).
-                aggregateFactory(GenericAggregateFactory<AggregateC>(AggregateC::class.java)).
-                eventStore(eventStore).
-                build<EventSourcingRepository<AggregateC>>()
-    }
-//	@Bean
-//    fun repo(eventStore: EventStore): Repository<ParentAggregate> {
-//        return EventSourcingRepository.builder(ParentAggregate::class.java).
-//                aggregateFactory(MyAggregateFactory()).
-//                eventStore(eventStore).
-//                build<EventSourcingRepository<ParentAggregate>>()
-//    }
 }
 
 fun main(args: Array<String>) {
@@ -47,9 +33,5 @@ class MyAggregateFactory() : GenericAggregateFactory<ParentAggregate>(ParentAggr
 				else -> throw RuntimeException("Payload type not found for first event")
 			}
 		}
-	}
-
-	override fun getAggregateType(): Class<ParentAggregate> {
-		return super.getAggregateType()
 	}
 }

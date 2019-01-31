@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.UUID
 
-@Aggregate
+@Aggregate(repository = "repo")
 class AggregateC(): ParentAggregate() {
     companion object {private val log = LoggerFactory.getLogger(javaClass)}
 
