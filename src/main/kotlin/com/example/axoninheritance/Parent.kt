@@ -24,7 +24,7 @@ open class ParentAggregate() {
     @CommandHandler
     fun handle(command: UpdateSharedCountCommand) {
         log.info("handle $command")
-        AggregateLifecycle.apply(SharedCounterUpdatedEvent(++counter))
+        AggregateLifecycle.apply(SharedCounterUpdatedEvent(command.id, ++counter))
     }
 
     @EventSourcingHandler
@@ -38,5 +38,4 @@ interface CreatedParentEvent {
     val id: UUID
 }
 data class UpdateSharedCountCommand(@TargetAggregateIdentifier val id: UUID)
-data class SharedCounterUpdatedEvent(val counter: Int)
-interface UpdatedParentEvent{val id: UUID}
+data class SharedCounterUpdatedEvent(var id: UUID, val counter: Int)

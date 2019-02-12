@@ -17,6 +17,7 @@ import java.util.UUID
 @Aggregate(repository = "repo")
 class AggregateB(): ParentAggregate() {
     companion object {private val log = LoggerFactory.getLogger(javaClass)}
+    var bCounter: Int = 0
 
     @CommandHandler
     constructor(command: CreateBCommand): this() {
@@ -29,13 +30,25 @@ class AggregateB(): ParentAggregate() {
         log.info("on $event")
         super.on(event)
     }
+
+    @CommandHandler
+    fun handle(command: UpdateBCommand) {
+        log.info("handle $command")
+        AggregateLifecycle.apply(UpdatedBEvent(command.id, ++bCounter))
+    }
+
+    @EventSourcingHandler
+    fun on(event: UpdatedBEvent) {
+        log.info("on $event")
+        apply { counter = event.bCounter }
+    }
 }
 
 data class CreateBCommand(@TargetAggregateIdentifier var id: UUID)
 data class CreatedBEvent(override var id: UUID): CreatedParentEvent
 
 data class UpdateBCommand(@TargetAggregateIdentifier var id: UUID)
-data class UpdatedBEvent(override var id: UUID): UpdatedParentEvent
+data class UpdatedBEvent(var id: UUID, var bCounter: Int)
 
 @Saga
 class SagaB() {
@@ -46,12 +59,15 @@ class SagaB() {
     @SagaEventHandler(associationProperty = "id")
     fun on(event: CreatedBEvent) {
         log.info("on $event")
-        gateway.sendAndWait<Unit>(UpdateSharedCountCommand(event.id))
     }
 
     @SagaEventHandler(associationProperty = "id")
-    @EndSaga
-    fun on(event: UpdatedParentEvent) {
-        log.info("finished Saga")
+    fun on(event: UpdatedBEvent) {
+        log.info("on $event")
+    }
+
+    @SagaEventHandler(associationProperty = "id")
+    fun on(event: SharedCounterUpdatedEvent) {
+        log.info("on $event")
     }
 }
